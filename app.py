@@ -31,6 +31,12 @@ class Score(db.Model):
     username = db.Column(db.String(20), nullable = False)
     streak = db.Column(db.Integer, nullable = False)
 
+    def to_dict(self):
+        return {
+            "username": self.username,
+            "streak": self.streak
+        }
+
 with app.app_context():
     db.create_all()
 
@@ -39,3 +45,27 @@ with app.app_context():
 @app.route("/", methods = ["GET"])
 def index():
     render_template("index.html")
+
+@app.route("/flip", methods = ["POST"])
+def flip():
+    data = request.get_json(silent=True)
+    raw_guess = data.get("guess")
+
+    win: bool = False
+    guess: CoinSide = CoinSide(raw_guess)
+    result: CoinSide = secrets.choice(list(CoinSide))
+    current_streak: int = session.get("streak", 0)
+
+    if guess == result:
+        current_streak += 1
+        session["streak"] = current_streak
+        win = True
+    else:
+        session["streak"] = 0
+        current_streak = session["streak"]
+
+    return jsonify({
+        "win": win,
+        "streak": current_streak,
+        "result": int(result)
+    })
