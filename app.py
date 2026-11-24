@@ -95,7 +95,7 @@ def flip():
 @app.route("/save-score", methods=["POST"])
 def save_score():
     data = request.get_json(silent=True)
-    submited_score: int = session.get("max_streak", 0)
+    submited_score: int = session.pop("max_streak", 0)
     username: str = (data.get("username") or "").strip()[:MAX_USERNAME_LENGHT]
 
     if username and submited_score != 0:
@@ -112,9 +112,9 @@ def leaderboard():
         Score.query
         .order_by(Score.streak.desc())
         .limit(LEADERBOARD_LIMIT)
-        .all
+        .all()
     )
-    return jsonify(score.to_dict for score in top_scores)
+    return jsonify([score.to_dict() for score in top_scores])
 
 
 if __name__ == "__main__":
