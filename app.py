@@ -75,6 +75,8 @@ def flip():
     else:
         if current_streak > 1:
             final_streak = current_streak
+        if current_streak > session.get("max_streak", 0):
+            session["max_streak"] = current_streak
         session["streak"] = 0
         current_streak = session["streak"]
 
@@ -85,8 +87,34 @@ def flip():
     }
     if final_streak != 0:
         data_result["final_streak"] = final_streak
+        data_result["max_streak"] = session.get("max_streak", 0)
 
     return jsonify(data_result)
+
+
+@app.route("/save-score", methods=["POST"])
+def save_score():
+    data = request.get_json(silent=True)
+    submited_score: int = session.get("max_streak", 0)
+    username: str = (data.get("username") or "").strip()[:MAX_USERNAME_LENGHT]
+
+    if username and submited_score != 0:
+        db.session.add(Score(username=username, streak=submited_score))
+        db.session.commit()
+        return jsonify({"ok": True}), 201
+    else:
+        return jsonify({"error": "did not save score"}), 422
+
+
+@app.route("/leaderboard", methods=["GET"])
+def leaderboard():
+    top_scores = (
+        Score.query
+        .order_by(Score.streak.desc())
+        .limit(LEADERBOARD_LIMIT)
+        .all
+    )
+    return jsonify(score.to_dict for score in top_scores)
 
 
 if __name__ == "__main__":
