@@ -7,12 +7,14 @@ from flask_sqlalchemy import SQLAlchemy
 
 load_dotenv()
 
+
 class CoinSide(IntEnum):
     CARA = 0
     SELLO = 1
 
-MAX_USERNAME_LENGHT = 20
-LEADERBOARD_LIMIT = 20
+
+MAX_USERNAME_LENGHT: int = 20
+LEADERBOARD_LIMIT: int = 20
 
 app = Flask(__name__)
 
@@ -26,10 +28,11 @@ app.config["SQLALCHEMY_DATABASE_URI"] = db_url
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db = SQLAlchemy(app)
 
+
 class Score(db.Model):
-    id = db.Column(db.Integer, primary_key = True)
-    username = db.Column(db.String(20), nullable = False)
-    streak = db.Column(db.Integer, nullable = False)
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(20), nullable=False)
+    streak = db.Column(db.Integer, nullable=False)
 
     def to_dict(self):
         return {
@@ -37,37 +40,54 @@ class Score(db.Model):
             "streak": self.streak
         }
 
+
 with app.app_context():
     db.create_all()
 
-# ROUTES START
-@app.route("/", methods = ["GET"])
-def index():
-    render_template("index.html")
 
-@app.route("/flip", methods = ["POST"])
+# ROUTES START
+@app.route("/", methods=["GET"])
+def index():
+    return render_template("index.html")
+
+
+@app.route("/flip", methods=["POST"])
 def flip():
     data = request.get_json(silent=True)
     raw_guess = data.get("guess")
+
+    if (type(raw_guess) is not int or
+       raw_guess not in (CoinSide.CARA, CoinSide.SELLO)):
+        return jsonify({
+            "error": "guess must be 0 or 1"
+        }), 400
 
     win: bool = False
     guess: CoinSide = CoinSide(raw_guess)
     result: CoinSide = secrets.choice(list(CoinSide))
     current_streak: int = session.get("streak", 0)
+    final_streak: int = 0
 
     if guess == result:
         current_streak += 1
         session["streak"] = current_streak
         win = True
     else:
+        if current_streak > 1:
+            final_streak = current_streak
         session["streak"] = 0
         current_streak = session["streak"]
 
-    return jsonify({
+    data_result = {
         "win": win,
         "streak": current_streak,
-        "result": int(result)
-    })
+        "result": int(result),
+    }
+    if final_streak != 0:
+        data_result["final_streak"] = final_streak
+
+    return jsonify(data_result)
+
 
 if __name__ == "__main__":
     app.run(debug=True)
