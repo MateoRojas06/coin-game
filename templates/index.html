@@ -1,13 +1,50 @@
 <!DOCTYPE html>
 <html lang="en">
     <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Call it!</title>
         <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
         <script src="{{ url_for('static', filename='js/game.js') }}" defer></script>
     </head>
     <body>
-        <h1>
-            Head or Tails
-        </h1>
+        <main>
+            <h1>
+                Head or Tails
+            </h1>
+            <p>
+                Racha Actual: <strong id="streak">0</strong>
+            </p>
+
+            <div class="controls">
+                <button class="guess-btn" data-guess="0">Heads</button>
+                <button class="guess-btn" data-guess="1">Tails</button>
+            </div>
+
+            <p id="status"></p>
+
+            <form id="save-form" hidden>
+                <input id="username" type="text" placeholder="Tu alias (máx. 20 caracteres)" maxlength="20" required>
+                <button type="submit">Guardar récord</button>
+            </form>
+
+            <div>
+                <h2>
+                    Mejores puntajes
+                </h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Player</th>
+                            <th>Score</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ranking"></tbody>
+                </table>
+            </div>
+        </main>
+        <footer>
+            Hecho por tete
+        </footer>
     </body>
 </html>
