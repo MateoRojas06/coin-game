@@ -40,7 +40,6 @@ class Score(db.Model):
 with app.app_context():
     db.create_all()
 
-
 # ROUTES START
 @app.route("/", methods = ["GET"])
 def index():
@@ -69,3 +68,6 @@ def flip():
         "streak": current_streak,
         "result": int(result)
     })
+
+if __name__ == "__main__":
+    app.run(debug=True)
